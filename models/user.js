@@ -14,6 +14,18 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    Token:{
+        type: String,
+        required: true
+    },
+    LastSignIn:{
+        type: Number,
+        required: true
+    },
+    LastRequest:{
+        type: Number,
+        required: true
+    }
 })
 
 module.exports = mongoose.model("user", UserSchema)

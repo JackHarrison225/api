@@ -6,7 +6,7 @@ GET http://localhost:3000/users/
 
 ### 
 
-POST http://localhost:3000/users
+POST http://localhost:3000/users/signup
 Content-Type: application/json
 
 {
@@ -17,7 +17,7 @@ Content-Type: application/json
 
 ### userID at the end
 
-DELETE http://localhost:3000/users/67091fd060861ffd22a8cbac
+DELETE http://localhost:3000/users/6709275eb038804219681e19
 
 ### userID at the end
 

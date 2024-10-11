@@ -34,10 +34,15 @@ router.post("/signup", async (req, res) => {
         let password = req.body.Password
         
         let user = req.body
+        user.Token = await newToken()
         
+        
+        user.LastSignIn = Date.now()
+        user.LastRequest = Date.now()
         bcrypt.genSalt(10, function(err,salt){
             bcrypt.hash(password, salt, async function(err, hash) {
                 user.Password = hash
+                
                 newUser = new User(user)
                 console.log(newUser)
                 try {
@@ -83,7 +88,12 @@ router.post("/signin", async (req, res) => {
         let match = await bcrypt.compare(input, UnameCheck.Password)
         if (match)
         {
+            UnameCheck.Token = newToken()
+            UnameCheck.LastSignIn = Date.now()
+            UnameCheck.LastRequest = Date.now()
+
             console.log("logged in")
+            await UnameCheck.save()
             return res.status(200).json({message: "signed in", state: true})
         } else {
             res.status(400).json({mesasge: "Incorrect password", state: false})
@@ -93,7 +103,12 @@ router.post("/signin", async (req, res) => {
         let match = await bcrypt.compare(input, EmailCheck.Password)
         if (match)
         {
+            EmailCheck.Token = newToken() 
+            EmailCheck.LastSignIn = Date.now()
+            EmailCheck.LastRequest = Date.now()
+
             console.log("logged in")
+            await EmailCheck.save()
             return res.status(200).json({message: "signed in", state: true})
         } else {
             res.status(400).json({mesasge: "Incorrect password", state: false})
@@ -113,6 +128,9 @@ router.patch("/:id", findUser, async (req, res) => {
     }
     if (req.body.Email != null){
         res.user.Email = req.body.Email
+    }
+    if (req.body.Token !=null){
+        res.user.Token = newToken()
     }
     try {
         const uptatedUser = await res.user.save()
@@ -137,6 +155,7 @@ router.delete("/:id", findUser, async (req, res) => {
     console.log("deleted")
 })
 
+// Functions
 async function findUser(req, res, next){
     console.log("Finding user...")
     try {
@@ -153,4 +172,40 @@ async function findUser(req, res, next){
     next()
 }
 
+async function newToken(){
+    let currentdate = String(Date.now())
+    return new Promise((resolve)=>{
+        bcrypt.genSalt(10, async function(err,salt){
+            bcrypt.hash(currentdate, salt, async function(err, hash) {
+                resolve(hash)
+            })
+        })
+    })
+}
+
+async function checkToken(token){
+    let found = User.findOne({Token: token})
+    if (found != null){
+        return true
+    } else {
+        return false
+    }
+}
+
+function TimeOutSinIn(token){
+    if(user.LastSignIn + 14400000 >= Date.now()){
+        signoutUser(user)
+    }
+}
+
+function TimeOutRequest(user){
+    if(user.LastRequest + 600000 >= Date.now()){
+        signoutUser(user)
+    }
+}
+
+async function signoutUser(user){
+    user.Token = await newToken()
+    await user.save()
+}
 module.exports = router
