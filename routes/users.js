@@ -18,17 +18,19 @@ router.get("/", async (req, res) => {
 // get individual user
 router.get("/:id", findUser, (req, res) => {
     console.log("user found")
-    res.send(res.user)
+    res.sendStatus(res.user)
 })
 
 // create user
-router.post("/", async (req, res) => {  
+router.post("/signup", async (req, res) => {  
     //check username and email are available
+    console.log("Checking email and Username")
     const UnameCheck = await User.findOne({UserName:req.body.UserName})
     const EmailCheck = await User.findOne({Email:req.body.Email})
 
     if(EmailCheck == null && UnameCheck == null)
     {
+        console.log("Creating User")
         let password = req.body.Password
         
         let user = req.body
@@ -37,53 +39,64 @@ router.post("/", async (req, res) => {
             bcrypt.hash(password, salt, async function(err, hash) {
                 user.Password = hash
                 newUser = new User(user)
-
+                console.log(newUser)
                 try {
+                    
                     const SavedUser = await newUser.save()
+                    console.log("User Created")
                     res.status(201).json(SavedUser)
                 } catch (err) {
+                    console.log(err)
                     res.status(400).json({message: err.message})
                 }
             })
         })
     }
     else if (EmailCheck != null & UnameCheck == null){
-        res.status(400).json({message: "Email already exists", status: false})
+        console.log("Creation Failed ")
+        res.status(400).json({message: "Email already exists", state: false})
     }
     else if (UnameCheck != null & EmailCheck == null){
-        res.status(400).json({message: "Username already exists", status: false})
+        console.log("Creation Failed ")
+        res.status(400).json({message: "Username already exists", state: false})
     }
     else {
-        res.status(400).json({message: "Username and email already exist", status: false})
+        console.log("Creation Failed ")
+        res.status(400).json({message: "Username and email already exist", state: false})
     }
 
 })
 
 // login
 router.post("/signin", async (req, res) => {
+
+    console.log("Finding user...")
     const UnameCheck = await User.findOne({UserName:req.body.UorE})
     const EmailCheck = await User.findOne({Email:req.body.UorE})
-    
+   
     if (UnameCheck == null && EmailCheck == null)
     {
-        res.send(404).json({message: "No user found"})
+        console.log("No user")
+        res.status(404).json({message: "no user"})
     } else if (UnameCheck != null ) {
         const input = req.body.Password
         let match = await bcrypt.compare(input, UnameCheck.Password)
         if (match)
         {
-            return res.status(200).json({message: "signed in", status: true})
+            console.log("logged in")
+            return res.status(200).json({message: "signed in", state: true})
         } else {
-            res.status(400).json({mesasge: "Incorrect password", status: false})
+            res.status(400).json({mesasge: "Incorrect password", state: false})
         }
     } else {
         const input = req.body.Password
         let match = await bcrypt.compare(input, EmailCheck.Password)
         if (match)
         {
-            return res.status(200).json({message: "signed in", status: true})
+            console.log("logged in")
+            return res.status(200).json({message: "signed in", state: true})
         } else {
-            res.status(400).json({mesasge: "Incorrect password", status: false})
+            res.status(400).json({mesasge: "Incorrect password", state: false})
         }
     }
 })

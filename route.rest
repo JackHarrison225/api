@@ -17,7 +17,7 @@ Content-Type: application/json
 
 ### userID at the end
 
-DELETE http://localhost:3000/users/66ffd6c143dae8e956bcbaa7
+DELETE http://localhost:3000/users/67091fd060861ffd22a8cbac
 
 ### userID at the end
 
@@ -35,5 +35,5 @@ Content-Type: application/json
 
 {
     "UorE": "James",
-    "Password": "Password1"
+    "Password": "Password"
 }
