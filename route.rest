@@ -1,0 +1,39 @@
+GET http://localhost:3000/users
+
+### userID at the end
+
+GET http://localhost:3000/users/ 
+
+### 
+
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+    "UserName":"James",
+    "Password":"Password",
+    "Email":"User@email.com"
+}
+
+### userID at the end
+
+DELETE http://localhost:3000/users/66ffd6c143dae8e956bcbaa7
+
+### userID at the end
+
+PATCH http://localhost:3000/users/
+Content-Type: application/json
+
+{
+    "UserName": "Jack"
+}
+
+###
+
+POST  http://localhost:3000/users/signin
+Content-Type: application/json
+
+{
+    "UorE": "James",
+    "Password": "Password1"
+}
