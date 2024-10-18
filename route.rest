@@ -2,7 +2,12 @@ GET http://localhost:3000/users
 
 ### userID at the end
 
-GET http://localhost:3000/users/ 
+GET http://localhost:3000/users/one
+Content-Type: application/json
+
+{
+    "Token": "$2b$10$1GqkFGxhW.V1CooPdT92A.xDFrs8lKs8ITeQV5DrMycn2YPDwvNQW"
+}
 
 ### 
 
@@ -17,7 +22,7 @@ Content-Type: application/json
 
 ### userID at the end
 
-DELETE http://localhost:3000/users/6709275eb038804219681e19
+DELETE http://localhost:3000/users/67094527007288bcf09dba51
 
 ### userID at the end
 

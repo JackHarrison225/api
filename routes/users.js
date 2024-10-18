@@ -16,16 +16,24 @@ router.get("/", async (req, res) => {
 })
 
 // get individual user
-router.get("/:id", findUser, (req, res) => {
-    console.log("user found")
-    res.sendStatus(res.user)
+router.post("/one", findUserToken, (req, res) => {
+    if (TimeOutSinIn(res.user)){
+        if(TimeOutRequest(res.user)){
+            console.log("user found")
+            res.status(200).json({Email: res.user.Email,UserName: res.user.UserName })
+        } else {
+            res.status(400).json({message:"User Timeout request"})
+        }
+    } else {
+        res.status(400).json({message:"User Timeout sign in"})
+    }
 })
 
 // create user
 router.post("/signup", async (req, res) => {  
     //check username and email are available
     console.log("Checking email and Username")
-    const UnameCheck = await User.findOne({UserName:req.body.UserName})
+    const UnameCheck = await User.findOne({UserName: req.body.UserName})
     const EmailCheck = await User.findOne({Email:req.body.Email})
 
     if(EmailCheck == null && UnameCheck == null)
@@ -88,13 +96,13 @@ router.post("/signin", async (req, res) => {
         let match = await bcrypt.compare(input, UnameCheck.Password)
         if (match)
         {
-            UnameCheck.Token = newToken()
+            UnameCheck.Token = await newToken()
             UnameCheck.LastSignIn = Date.now()
             UnameCheck.LastRequest = Date.now()
 
             console.log("logged in")
             await UnameCheck.save()
-            return res.status(200).json({message: "signed in", state: true})
+            return res.status(200).json({id: UnameCheck._id, state: true, Token: UnameCheck.Token})
         } else {
             res.status(400).json({mesasge: "Incorrect password", state: false})
         }
@@ -103,13 +111,13 @@ router.post("/signin", async (req, res) => {
         let match = await bcrypt.compare(input, EmailCheck.Password)
         if (match)
         {
-            EmailCheck.Token = newToken() 
+            EmailCheck.Token = await newToken() 
             EmailCheck.LastSignIn = Date.now()
             EmailCheck.LastRequest = Date.now()
 
             console.log("logged in")
             await EmailCheck.save()
-            return res.status(200).json({message: "signed in", state: true})
+            return res.status(200).json({id: EmailCheck._id, state: true, Token: EmailCheck.Token})
         } else {
             res.status(400).json({mesasge: "Incorrect password", state: false})
         }
@@ -172,6 +180,25 @@ async function findUser(req, res, next){
     next()
 }
 
+async function findUserToken(req, res, next){
+    console.log("Finding User With Token...")
+    const token = req.body.Token
+    try {
+        const userToFind = await User.findOne({Token: req.body.Token})
+        if (userToFind == null){
+            console.log("NO USER")
+            return res.status(404).json({message: "No user found."})
+        } else {
+            res.user = userToFind
+            next()
+        }
+    } catch (err) {
+        console.log(`ERROR: ${err}`)
+        return res.status(500).json({message: err.message})
+    }
+    
+}
+
 async function newToken(){
     let currentdate = String(Date.now())
     return new Promise((resolve)=>{
@@ -192,15 +219,23 @@ async function checkToken(token){
     }
 }
 
-function TimeOutSinIn(token){
-    if(user.LastSignIn + 14400000 >= Date.now()){
+function TimeOutSinIn(user){
+    if(user.LastSignIn + 14400000 <= Date.now()){
         signoutUser(user)
+        return false
+    } else {
+        return true
     }
 }
 
-function TimeOutRequest(user){
-    if(user.LastRequest + 600000 >= Date.now()){
+async function TimeOutRequest(user){
+    if(user.LastRequest + 600000 <= Date.now()){
         signoutUser(user)
+        return false
+    } else {
+        user.LastRequest = Date.now()
+        await user.save()
+        return true
     }
 }
 
@@ -208,4 +243,5 @@ async function signoutUser(user){
     user.Token = await newToken()
     await user.save()
 }
+
 module.exports = router

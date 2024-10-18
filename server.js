@@ -8,7 +8,7 @@ mongoose.connect(process.env.CONNECTION_TEXT)
 
 const db = mongoose.connection
 db.on("error", (error) => console.error(error))
-db.once("open", () => console.log("Connected to data base"))
+db.once("open", () => console.log("Connected to database"))
 
 app.use(express.json())
 
